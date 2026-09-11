@@ -529,24 +529,27 @@ static void init_mouse_position(X11Context *x11, Mouse *m) {
 
 static void main_loop(X11Context *x11, OpenGLContext *gl, App *app) {
     app->state.dt = 1.0f / x11->refresh_rate;
+    x11_grab_focus(x11);
+    int ww, wh;
+    x11_get_window_size(x11, &ww, &wh);
+    glViewport(0, 0, ww, wh);
+
 
     while (app->state.running) {
-        x11_grab_focus(x11);
-
-        int ww, wh;
-        x11_get_window_size(x11, &ww, &wh);
-        glViewport(0, 0, ww, wh);
-
         process_events(x11, app);
 
         camera_update(app, vec2(ww, wh));
-        flashlight_update(app);
+
+        if (app->state.flashlight.enabled) {
+            flashlight_update(app);
+        }
 
         opengl_render(gl, app, ww, wh);
 
         glXSwapBuffers(x11->display, x11->window);
-        glFinish();
     }
+
+    glFinish();
 }
 
 // ================ ENTRY POINT
